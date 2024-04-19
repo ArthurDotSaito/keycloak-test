@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --exec ts-node-esm index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "auto-code": "nodemon --exec ts-node-esm ./auth-code/src/index.ts"
   },
   "keywords": [],
   "author": "",
