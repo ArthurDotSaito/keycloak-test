@@ -1,13 +1,22 @@
+import crypto from "crypto";
 import express from "express";
 
 const app = express();
 
 app.get("/login", (req, res) => {
+  const nonce = crypto.randomBytes(16).toString("base64");
+
+  //@ts-expect-error - type mismatch
+  req.session.nonce = nonce;
+  //@ts-expect-error - type mismatch
+  req.session.save();
+
   const loginParams = new URLSearchParams({
     client_id: "fs-client",
     redirect_uri: "http://localhost:3000/callback",
     response_type: "code",
     scope: "openid",
+    nonce: nonce,
   });
 
   const url = `http://localhost:8080/realms/fs-realm/protocol/openid-connect/auth?${loginParams.toString()}`;
