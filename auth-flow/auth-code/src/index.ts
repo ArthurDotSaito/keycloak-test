@@ -6,10 +6,12 @@ const app = express();
 
 app.get("/login", (req, res) => {
   const nonce = crypto.randomBytes(16).toString("base64");
+  const state = crypto.randomBytes(16).toString("base64");
 
   //@ts-expect-error - type mismatch
   req.session.nonce = nonce;
   //@ts-expect-error - type mismatch
+  req.session.state = state;
   req.session.save();
 
   const loginParams = new URLSearchParams({
@@ -18,6 +20,7 @@ app.get("/login", (req, res) => {
     response_type: "code",
     scope: "openid",
     nonce: nonce,
+    state: state,
   });
 
   const url = `http://localhost:8080/realms/fs-realm/protocol/openid-connect/auth?${loginParams.toString()}`;
@@ -25,7 +28,14 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/callback", async (req, res) => {
-  console.log(req.query);
+  //@ts-expect-error - type mismatch
+  if (req.session.user) {
+    return res.redirect("/admin");
+  }
+
+  if (req.query.state !== req.session.state) {
+    return res.status(401).json({ message: "Invalid Autentication" });
+  }
 
   const bodyParams = new URLSearchParams({
     client_id: "fs-client",
@@ -57,7 +67,7 @@ app.get("/callback", async (req, res) => {
     //@ts-expect-error - type mismatch
     idToken.nonce !== req.session.nonce
   ) {
-    res.status(401).send("Invalid Auth");
+    res.status(401).send("Invalid Autentication");
   }
 
   //@ts-expect-error - type mismatch
@@ -67,7 +77,6 @@ app.get("/callback", async (req, res) => {
   //@ts-expect-error - type mismatch
   req.session.id_token = result.id_token;
 
-  console.log(result);
   res.json(result);
 });
 
