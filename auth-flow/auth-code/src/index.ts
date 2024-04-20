@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import express from "express";
+import jwt from "jsonwebtoken";
 
 const app = express();
 
@@ -44,6 +45,28 @@ app.get("/callback", async (req, res) => {
   });
 
   const result = await response.json();
+  const payloadAccessToken = jwt.decode(result.access_token) as any;
+  const refreshToken = jwt.decode(result.refresh_token) as any;
+  const idToken = jwt.decode(result.id_token) as any;
+
+  if (
+    //@ts-expect-error - type mismatch
+    payloadAccessToken.nonce !== req.session.nonce ||
+    //@ts-expect-error - type mismatch
+    refreshToken.nonce !== req.session.nonce ||
+    //@ts-expect-error - type mismatch
+    idToken.nonce !== req.session.nonce
+  ) {
+    res.status(401).send("Invalid Auth");
+  }
+
+  //@ts-expect-error - type mismatch
+  req.session.user = payloadAccessToken;
+  //@ts-expect-error - type mismatch
+  req.session.access_token = result.access_token;
+  //@ts-expect-error - type mismatch
+  req.session.id_token = result.id_token;
+
   console.log(result);
   res.json(result);
 });
