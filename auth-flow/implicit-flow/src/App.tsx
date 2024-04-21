@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import { Admin } from "./Admin";
 import { Callback } from "./Callback";
 import { Login } from "./Login";
@@ -24,13 +24,7 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return (
-    <>
-      <div>
-        <h1>Implicit Flow</h1>
-      </div>
-    </>
-  );
+  return <RouterProvider router={router}></RouterProvider>;
 }
 
 export default App;
