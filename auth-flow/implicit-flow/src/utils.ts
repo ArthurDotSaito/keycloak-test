@@ -8,13 +8,13 @@ export function makeLoginUrl() {
   Cookies.set("state", state);
 
   const loginUrlParams = new URLSearchParams({
-    client_id: "implicit-flow",
+    client_id: "fs-client",
     redirect_uri: "http://localhost:3000/callback",
-    response_type: "token token_id",
+    response_type: "token id_token",
     scope: "openid",
     nonce: nonce,
     state: state,
   });
 
-  return `http://localhost:8080/auth/realms/master/protocol/openid-connect/auth?${loginUrlParams.toString()}`;
+  return `http://localhost:8080/auth/realms/fs-realm/protocol/openid-connect/auth?${loginUrlParams.toString()}`;
 }
