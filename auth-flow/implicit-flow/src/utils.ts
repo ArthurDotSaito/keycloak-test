@@ -4,6 +4,7 @@ export function makeLoginUrl() {
   const nonce = Math.random().toString(36);
   const state = Math.random().toString(36);
 
+  //Armazenar em um secury cookie (https)
   Cookies.set("nonce", nonce);
   Cookies.set("state", state);
 
@@ -16,5 +17,5 @@ export function makeLoginUrl() {
     state: state,
   });
 
-  return `http://localhost:8080/auth/realms/fs-realm/protocol/openid-connect/auth?${loginUrlParams.toString()}`;
+  return `http://localhost:8080/realms/fs-realm/protocol/openid-connect/auth?${loginUrlParams.toString()}`;
 }
