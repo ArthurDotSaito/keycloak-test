@@ -50,3 +50,16 @@ export function login(accessToken: string, idToken: string, state: string) {
 
   return decodedAccessToken;
 }
+
+export function getAuth() {
+  const token = Cookies.get("access_token");
+  if (!token) {
+    return null;
+  }
+
+  try {
+    return decodeJwt(token);
+  } catch (e) {
+    return null;
+  }
+}
