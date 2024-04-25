@@ -1,3 +1,4 @@
+import { decodeJwt } from "jose";
 import Cookies from "js-cookie";
 
 export function makeLoginUrl() {
@@ -18,4 +19,34 @@ export function makeLoginUrl() {
   });
 
   return `http://localhost:8080/realms/fs-realm/protocol/openid-connect/auth?${loginUrlParams.toString()}`;
+}
+
+export function login(accessToken: string, idToken: string, state: string) {
+  const stateCookie = Cookies.get("state");
+  if (stateCookie !== state) {
+    throw new Error("Invalid State");
+  }
+
+  let decodedAccessToken = null;
+  let decodedIdToken = null;
+
+  try {
+    decodedAccessToken = decodeJwt(accessToken);
+    decodedIdToken = decodeJwt(idToken);
+  } catch (e) {
+    throw new Error("Invalid token");
+  }
+
+  if (decodedAccessToken.nonce !== Cookies.get("nonce")) {
+    throw new Error("Invalid nonce");
+  }
+
+  if (decodedIdToken.nonce !== Cookies.get("nonce")) {
+    throw new Error("Invalid nonce");
+  }
+
+  Cookies.set("access-token", accessToken);
+  Cookies.set("id-token", idToken);
+
+  return decodedAccessToken;
 }
