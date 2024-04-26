@@ -63,3 +63,20 @@ export function getAuth() {
     return null;
   }
 }
+
+export function makeLogoutUrl() {
+  if (Cookies.get("id_token")) {
+    return false;
+  }
+
+  const logoutParams = new URLSearchParams({
+    id_token_hint: Cookies.get("id_token") as string,
+    post_logout_redirect_uri: "http://localhost:3000/login",
+  });
+
+  Cookies.remove("access_token");
+  Cookies.remove("id_token");
+  Cookies.remove("nonce");
+
+  return `http://localhost:8080/realms/fs-realm/protocol/openid-connect/logout?${logoutParams.toString()}`;
+}
