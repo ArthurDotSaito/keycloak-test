@@ -7,7 +7,7 @@ export function Logout() {
   useEffect(() => {
     const logoutUrl = makeLogoutUrl();
     if (logoutUrl) {
-      window.location.href = makeLogoutUrl();
+      window.location.href = logoutUrl;
     }
   }, [makeLogoutUrl]);
 
