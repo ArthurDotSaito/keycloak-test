@@ -23,25 +23,28 @@ export function makeLoginUrl() {
 
 export function login(
   accessToken: string,
-  idToken: string,
+  idToken: string | null,
   refreshToken?: string,
   state?: string
 ) {
   const stateCookie = Cookies.get("state");
-  if (stateCookie !== state) {
+  if (state && stateCookie !== state) {
     throw new Error("Invalid State");
   }
 
   let decodedAccessToken = null;
   let decodedIdToken = null;
   let decodedRefreshToken = null;
+
   if (refreshToken) {
     decodedRefreshToken = decodeJwt(refreshToken);
   }
 
   try {
     decodedAccessToken = decodeJwt(accessToken);
-    decodedIdToken = decodeJwt(idToken);
+    if (idToken) {
+      decodedIdToken = decodeJwt(idToken);
+    }
   } catch (e) {
     throw new Error("Invalid token");
   }
@@ -62,7 +65,11 @@ export function login(
   }
 
   Cookies.set("access-token", accessToken);
-  Cookies.set("id-token", idToken);
+
+  if (idToken) {
+    Cookies.set("id-token", idToken);
+  }
+
   if (decodedRefreshToken) {
     Cookies.set("refresh-token", refreshToken as string);
   }
