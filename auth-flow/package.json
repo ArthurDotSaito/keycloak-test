@@ -8,7 +8,8 @@
     "implicit": "cd implicit-flow && npm run dev"
   },
   "workspaces": [
-    "implicit-flow"
+    "implicit-flow",
+    "hybrid-flow"
   ],
   "keywords": [],
   "author": "",
