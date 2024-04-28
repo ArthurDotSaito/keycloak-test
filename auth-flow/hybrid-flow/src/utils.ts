@@ -12,7 +12,7 @@ export function makeLoginUrl() {
   const loginUrlParams = new URLSearchParams({
     client_id: "fs-client",
     redirect_uri: "http://localhost:3000/callback",
-    response_type: "token id_token",
+    response_type: "token id_token code",
     scope: "openid",
     nonce: nonce,
     state: state,
@@ -21,7 +21,12 @@ export function makeLoginUrl() {
   return `http://localhost:8080/realms/fs-realm/protocol/openid-connect/auth?${loginUrlParams.toString()}`;
 }
 
-export function login(accessToken: string, idToken: string, state: string) {
+export function login(
+  accessToken: string,
+  idToken: string,
+  refreshToken?: string,
+  state?: string
+) {
   const stateCookie = Cookies.get("state");
   if (stateCookie !== state) {
     throw new Error("Invalid State");
@@ -29,6 +34,10 @@ export function login(accessToken: string, idToken: string, state: string) {
 
   let decodedAccessToken = null;
   let decodedIdToken = null;
+  let decodedRefreshToken = null;
+  if (refreshToken) {
+    decodedRefreshToken = decodeJwt(refreshToken);
+  }
 
   try {
     decodedAccessToken = decodeJwt(accessToken);
@@ -45,8 +54,18 @@ export function login(accessToken: string, idToken: string, state: string) {
     throw new Error("Invalid nonce");
   }
 
+  if (
+    decodedRefreshToken &&
+    decodedRefreshToken.nonce !== Cookies.get("nonce")
+  ) {
+    throw new Error("Invalid nonce");
+  }
+
   Cookies.set("access-token", accessToken);
   Cookies.set("id-token", idToken);
+  if (decodedRefreshToken) {
+    Cookies.set("refresh-token", refreshToken as string);
+  }
 
   return decodedAccessToken;
 }
@@ -77,6 +96,33 @@ export function makeLogoutUrl() {
   Cookies.remove("access_token");
   Cookies.remove("id_token");
   Cookies.remove("nonce");
+  Cookies.remove("state");
+  Cookies.remove("refresh_token");
 
   return `http://localhost:8080/realms/fs-realm/protocol/openid-connect/logout?${logoutParams.toString()}`;
+}
+
+export function exchangeCodeForToken(code: string) {
+  const tokenUrlParams = new URLSearchParams({
+    client_id: "fs-client",
+    grant_type: "authorization_code",
+    code: code,
+    redirect_url: "http://localhost:3000/callback",
+    nonce: Cookies.get("nonce") as string,
+  });
+
+  return fetch(
+    "http://localhost:8080/realms/fs-realm/protocol/openid-connect/token",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: tokenUrlParams.toString(),
+    }
+  )
+    .then((res) => res.json())
+    .then((res) => {
+      return login(res.access_token, res.id_token, res.refresh_token);
+    });
 }

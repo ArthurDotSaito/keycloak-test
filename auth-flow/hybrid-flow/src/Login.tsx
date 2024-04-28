@@ -1,11 +1,10 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import { Navigate } from "react-router-dom";
+import { AuthContext } from "./AuthProvider";
 import { makeLoginUrl } from "./utils";
 
 export function Login() {
-  const { auth } = {
-    auth: false,
-  };
+  const { auth } = useContext(AuthContext);
 
   useEffect(() => {
     if (!auth) {
